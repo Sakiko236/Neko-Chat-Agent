@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neko Chat Agent — 做减法的极简桌面端 Agent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: #09090b;
+      --glow-subtle: rgba(255, 255, 255, 0.08);
+      --glow-active: rgba(255, 255, 255, 0.22);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      background-color: var(--bg);
+      color: #f4f4f5;
+      margin: 0;
+      scroll-behavior: smooth;
+    }
+
+    /* 复刻 Neko Chat Agent 原生呼吸与猫耳微动 */
+    @keyframes orbBreathe {
+      0%, 100% { transform: translateY(0) scale(1); box-shadow: 0 0 35px -5px var(--glow-subtle); }
+      50% { transform: translateY(-4px) scale(1.02); box-shadow: 0 0 48px 2px var(--glow-active); }
+    }
+    @keyframes earL {
+      0%, 86%, 100% { transform: rotate(0); }
+      90% { transform: rotate(-9deg) translateY(-1.5px); }
+      94% { transform: rotate(3deg); }
+    }
+    @keyframes earR {
+      0%, 82%, 100% { transform: rotate(0); }
+      86% { transform: rotate(10deg) translateY(-1.5px); }
+      90% { transform: rotate(-3deg); }
+    }
+    @keyframes dotBreathe {
+      0%, 100% { transform: scale(.92); opacity: .65; box-shadow: 0 0 8px rgba(255,255,255,.35); }
+      50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 14px rgba(255,255,255,.85); }
+    }
+
+    .idle-orb { animation: orbBreathe 4.5s cubic-bezier(.4,0,.2,1) infinite; }
+    .ear-left { transform-origin: 20px 16px; animation: earL 6.5s ease-in-out infinite; }
+    .ear-right { transform-origin: 48px 16px; animation: earR 7.8s ease-in-out infinite; }
+    .core-dot { animation: dotBreathe 4.5s cubic-bezier(.4,0,.2,1) infinite; }
+
+    .bg-grid {
+      background-image: radial-gradient(#27272a 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+  </style>
+</head>
+<body class="relative min-h-screen antialiased selection:bg-white/20 selection:text-white overflow-x-hidden">
+
+  <!-- 全局点阵背景（与软件本体一致） -->
+  <div class="fixed inset-0 bg-grid opacity-20 pointer-events-none"></div>
+
+  <!-- 极简顶部导航 -->
+  <header class="sticky top-0 z-40 backdrop-blur-xl bg-[#09090b]/80 border-b border-white/[0.06]">
+    <div class="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <span class="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#ffffff]"></span>
+        <span class="text-sm font-medium tracking-wide text-zinc-100">Neko Chat Agent</span>
+        <span id="nav-version" class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-white/[0.04] text-zinc-500 border border-white/[0.06]">v1.0.0</span>
+      </div>
+
+      <nav class="flex items-center space-x-6 text-xs sm:text-sm text-zinc-400">
+        <a href="#philosophy" class="hover:text-white transition-colors">理念</a>
+        <a href="#features" class="hover:text-white transition-colors">特性</a>
+        <a href="#preview" class="hover:text-white transition-colors hidden sm:inline">交互</a>
+        <a id="github-link" href="https://github.com/Sakiko236/Neko-Chat-Agent" target="_blank" rel="noopener" class="hover:text-white transition-colors flex items-center space-x-1.5">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="relative z-10 max-w-4xl mx-auto px-6">
+
+    <!-- 首屏 Hero：克制、直接 -->
+    <section class="pt-24 pb-20 text-center">
+      <h1 class="text-4xl sm:text-5xl font-medium tracking-tight text-white leading-[1.18]">
+        Neko Chat Agent
+      </h1>
+
+      <p class="mt-5 text-base sm:text-lg text-zinc-400 max-w-xl mx-auto font-light leading-relaxed">
+        一款做减法的桌面端 Agent。<br class="hidden sm:inline" />
+        抛弃失控的自主循环，保留对本地文件的修改权限，把每一步的方向盘交还给你。
+      </p>
+
+      <!-- 下载按钮组 -->
+      <div id="download" class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+        <a id="primary-download-btn" href="https://github.com/Sakiko236/Neko-Chat-Agent/releases/download/v1.0.0/NekoAgent_Setup_v1.0.0.exe" target="_blank" rel="noopener" class="inline-flex items-center justify-center space-x-2.5 px-7 py-3 rounded-full bg-white text-[#09090b] font-medium text-sm hover:bg-zinc-200 transition-colors">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span id="primary-btn-text">下载 Windows 桌面端 v1.0.0</span>
+        </a>
+
+        <a id="secondary-download-btn" href="https://github.com/Sakiko236/Neko-Chat-Agent/releases" target="_blank" rel="noopener" class="inline-flex items-center justify-center px-6 py-3 rounded-full bg-transparent hover:bg-white/[0.04] border border-white/[0.1] text-zinc-300 hover:text-white text-sm transition-colors">
+          <span id="secondary-btn-text">查看所有 Releases</span>
+        </a>
+      </div>
+
+      <p id="release-meta" class="mt-4 text-xs text-zinc-500">
+        最新版本 v1.0.0 · 轻量原生桌面窗口 · 首次使用需配置 API 端口
+      </p>
+    </section>
+
+    <!-- 交互窗口预览：还原软件真实 UI -->
+    <section id="preview" class="pb-24">
+      <div class="rounded-2xl border border-white/[0.08] bg-[#09090b]/90 backdrop-blur-2xl overflow-hidden">
+        <!-- 模拟软件无边框标题栏 -->
+        <div class="h-8 px-4 border-b border-white/[0.06] flex items-center justify-between select-none">
+          <span class="text-[11px] font-mono text-zinc-500">Neko Chat Agent</span>
+          <div class="flex items-center space-x-4 text-white/35 text-xs">
+            <span>—</span>
+            <span>□</span>
+            <span>×</span>
+          </div>
+        </div>
+
+        <!-- 模拟对话舞台 -->
+        <div class="relative h-80 sm:h-96 p-6 flex flex-col justify-between bg-grid">
+          <!-- 复刻新建会话微光信号 -->
+          <div id="demo-signal" class="absolute top-3 inset-x-0 mx-auto w-fit opacity-0 transition-opacity duration-500 pointer-events-none">
+            <div class="w-1.5 h-1.5 rounded-full bg-white/60 shadow-[0_0_8px_#fff]"></div>
+          </div>
+
+          <div id="demo-chat-area" class="max-w-md mx-auto w-full space-y-3 pt-2">
+            <div class="ml-auto w-fit max-w-[85%] px-3.5 py-2 rounded-2xl rounded-tr-sm bg-white/[0.07] border border-white/[0.08] text-xs sm:text-sm text-zinc-200">
+              读取当前目录下的 config.json，把 timeout 改成 3000。
+            </div>
+            <div id="demo-reply" class="mr-auto w-fit max-w-[88%] px-3.5 py-2.5 rounded-2xl rounded-tl-sm bg-white/[0.02] border border-white/[0.06] text-xs sm:text-sm text-zinc-400 leading-relaxed">
+              已定位并修改本地文件 <span class="text-zinc-200 font-mono text-xs">📝 config.json</span>，等待你的下一步指令。
+            </div>
+          </div>
+
+          <!-- 窗口底部居中：猫耳交互核心 -->
+          <div class="flex flex-col items-center">
+            <span class="text-[11px] text-zinc-500 mb-3 select-none">
+              单击猫猫头展开输入 · 双击猫猫头新建会话
+            </span>
+            <div id="demo-nexus" class="group relative flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer rounded-full backdrop-blur-2xl bg-white/[0.03] border border-white/[0.1] hover:border-white/[0.22] idle-orb" style="width:68px;height:68px;">
+              <svg id="demo-ears" class="absolute -top-4 inset-x-0 w-full h-5 transition-all duration-300 pointer-events-none overflow-visible" viewBox="0 0 68 20" fill="none">
+                <g class="ear-left">
+                  <path class="fill-[#f4f4f5]/75 group-hover:fill-white transition-colors" d="M 11 19 C 10 10, 13 2, 18 2 C 22 2, 26 9, 27 17 Z" />
+                  <path class="fill-rose-200/45 group-hover:fill-rose-300/65 transition-colors" d="M 14 16 C 14 11, 15.5 6, 18 6 C 20.5 6, 22.5 10.5, 23 15 Z" />
+                </g>
+                <g class="ear-right">
+                  <path class="fill-[#f4f4f5]/75 group-hover:fill-white transition-colors" d="M 41 17 C 42 9, 46 2, 50 2 C 55 2, 58 10, 57 19 Z" />
+                  <path class="fill-rose-200/45 group-hover:fill-rose-300/65 transition-colors" d="M 45 15 C 45.5 10.5, 47.5 6, 50 6 C 52.5 6, 54 11, 54 16 Z" />
+                </g>
+              </svg>
+
+              <div id="demo-pupil" class="w-full h-full flex items-center justify-center pointer-events-none">
+                <span class="core-dot w-2 h-2 rounded-full bg-[#fafafa]"></span>
+              </div>
+
+              <form id="demo-form" class="hidden w-full h-full px-4 flex items-center justify-between">
+                <span class="text-white/40 mr-2 text-xs">📎</span>
+                <input id="demo-input" type="text" autocomplete="off" placeholder="Ask..." class="w-full bg-transparent text-[#f4f4f5] text-xs sm:text-sm font-light outline-none border-none" />
+                <span class="w-1.5 h-1.5 rounded-full bg-white/50 ml-2"></span>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 作者理念：做减法的 Agent -->
+    <section id="philosophy" class="py-16 border-t border-white/[0.06]">
+      <div class="max-w-2xl">
+        <p class="text-xs font-mono uppercase tracking-widest text-zinc-500 mb-4">设计哲学</p>
+        <blockquote class="text-xl sm:text-2xl font-normal text-white leading-relaxed tracking-tight">
+          “我们认为人类的指引在 Agent 工作流里是必须的。”
+        </blockquote>
+        <p class="mt-5 text-sm sm:text-base text-zinc-400 font-light leading-relaxed">
+          Neko Chat Agent 是一款<strong class="font-medium text-zinc-200">做减法的 Agent</strong>。我们主动<strong class="font-medium text-zinc-200">抛弃了 ReAct</strong>——不再让模型陷入冗长、不可控的多步自主循环与黑盒试错，但完整<strong class="font-medium text-zinc-200">保留了对本地文件的直接修改权限</strong>。让 AI 专注于高效执行，而每一次方向判断都由你亲自掌控。
+        </p>
+      </div>
+    </section>
+
+    <!-- 核心特性 & 使用说明（极简 2x2 细线网格） -->
+    <section id="features" class="py-16 border-t border-white/[0.06]">
+      <p class="text-xs font-mono uppercase tracking-widest text-zinc-500 mb-8">特性与使用</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 border-t border-l border-white/[0.07]">
+        <!-- 特性 1 -->
+        <div class="p-7 border-r border-b border-white/[0.07]">
+          <span class="text-xs font-mono text-zinc-500">01</span>
+          <h3 class="mt-2 text-base font-medium text-white">具备对本地文件的操作权限</h3>
+          <p class="mt-2 text-sm text-zinc-400 font-light leading-relaxed">
+            支持直接读取、创建与修改本地文件。无需反复复制粘贴代码或文本，在你的明确指令下精准落盘修改。
+          </p>
+        </div>
+
+        <!-- 特性 2 -->
+        <div class="p-7 border-r border-b border-white/[0.07]">
+          <span class="text-xs font-mono text-zinc-500">02</span>
+          <h3 class="mt-2 text-base font-medium text-white">支持多种格式文件上传</h3>
+          <p class="mt-2 text-sm text-zinc-400 font-light leading-relaxed">
+            支持 PDF 文档、图片、代码源码及各类纯文本文件多选上传，自动识别类型并作为上下文融入当前对话。
+          </p>
+        </div>
+
+        <!-- 特性 3 -->
+        <div class="p-7 border-r border-b border-white/[0.07]">
+          <span class="text-xs font-mono text-zinc-500">03</span>
+          <h3 class="mt-2 text-base font-medium text-white">双击猫猫头以新建会话</h3>
+          <p class="mt-2 text-sm text-zinc-400 font-light leading-relaxed">
+            界面交互极度克制：单击窗口底部的猫耳光球展开输入框，直接<strong class="font-normal text-zinc-200">双击猫猫头</strong>即可清空当前上下文并开启新会话。
+          </p>
+        </div>
+
+        <!-- 特性 4 -->
+        <div class="p-7 border-r border-b border-white/[0.07]">
+          <span class="text-xs font-mono text-zinc-500">04</span>
+          <h3 class="mt-2 text-base font-medium text-white">首次使用需配置 API 端口</h3>
+          <p class="mt-2 text-sm text-zinc-400 font-light leading-relaxed">
+            纯本地客户端架构，不绑定任何中心化云账号。首次启动后，请在设置中配置你的模型 API 端口与密钥即可开始使用。
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 极简页脚 -->
+  <footer class="relative z-10 border-t border-white/[0.06] mt-8 py-8">
+    <div class="max-w-4xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 gap-2">
+      <span>Neko Chat Agent</span>
+      <span>Less autonomy, more clarity.</span>
+    </div>
+  </footer>
+
+  <script>
+    // ==========================================
+    // 1. 替换为你的 GitHub 仓库（格式：'用户名/仓库名'）
+    // 自动获取最新 Release 安装包直链与版本号
+    // ==========================================
+    const GITHUB_REPO = 'Sakiko236/Neko-Chat-Agent';
+    const REPO_URL = `https://github.com/${GITHUB_REPO}`;
+    const RELEASES_URL = `${REPO_URL}/releases`;
+    const DOWNLOAD_URL = 'https://github.com/Sakiko236/Neko-Chat-Agent/releases/download/v1.0.0/NekoAgent_Setup_v1.0.0.exe';
+
+    async function fetchLatestRelease() {
+      document.getElementById('github-link').href = REPO_URL;
+      document.getElementById('secondary-download-btn').href = RELEASES_URL;
+      document.getElementById('primary-download-btn').href = DOWNLOAD_URL;
+
+      try {
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (data.tag_name) {
+          document.getElementById('nav-version').textContent = data.tag_name;
+        }
+
+        const assets = data.assets || [];
+        const isMac = /Mac|iPhone|iPad/i.test(navigator.userAgent);
+        const winAsset = assets.find(a => /\.(exe|msi)$/i.test(a.name)) || assets.find(a => /win.*\.zip$/i.test(a.name));
+        const macAsset = assets.find(a => /\.(dmg|pkg)$/i.test(a.name)) || assets.find(a => /mac.*\.zip$/i.test(a.name));
+
+        const targetAsset = isMac ? (macAsset || winAsset) : (winAsset || macAsset);
+        if (targetAsset) {
+          const sizeMB = (targetAsset.size / (1024 * 1024)).toFixed(1);
+          document.getElementById('primary-download-btn').href = targetAsset.browser_download_url;
+          document.getElementById('primary-btn-text').textContent = `下载 ${targetAsset.name} (${sizeMB} MB)`;
+          document.getElementById('release-meta').textContent = `最新版本 ${data.tag_name} · 首次使用需配置 API 端口`;
+        }
+      } catch (err) {
+        console.warn('获取 GitHub Release 失败，已回退至 Releases 页面', err);
+      }
+    }
+    fetchLatestRelease();
+
+    // ==========================================
+    // 2. 猫耳光球交互演示（单击展开 / 双击新建会话）
+    // ==========================================
+    const nexus = document.getElementById('demo-nexus');
+    const ears = document.getElementById('demo-ears');
+    const pupil = document.getElementById('demo-pupil');
+    const form = document.getElementById('demo-form');
+    const input = document.getElementById('demo-input');
+    const chatArea = document.getElementById('demo-chat-area');
+    const signal = document.getElementById('demo-signal');
+    let isExpanded = false;
+
+    function toggleDemoOrb(expand) {
+      isExpanded = expand;
+      if (expand) {
+        nexus.style.width = window.innerWidth < 640 ? '270px' : '380px';
+        nexus.style.height = '46px';
+        nexus.classList.remove('idle-orb');
+        ears.style.opacity = '0';
+        ears.style.transform = 'translateY(6px) scale(.85)';
+        pupil.classList.add('hidden');
+        form.classList.remove('hidden');
+        setTimeout(() => input.focus(), 150);
+      } else {
+        nexus.style.width = '68px';
+        nexus.style.height = '68px';
+        nexus.classList.add('idle-orb');
+        ears.style.opacity = '1';
+        ears.style.transform = 'translateY(0) scale(1)';
+        pupil.classList.remove('hidden');
+        form.classList.add('hidden');
+        input.value = '';
+      }
+    }
+
+    // 单击展开
+    nexus.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!isExpanded) toggleDemoOrb(true);
+    });
+
+    // 双击猫猫头新建会话
+    nexus.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      signal.style.opacity = '1';
+      setTimeout(() => signal.style.opacity = '0', 700);
+      toggleDemoOrb(false);
+      chatArea.innerHTML = `
+        <div class="mx-auto w-fit px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.06] text-[11px] font-mono text-zinc-500">
+          已新建会话 · 等待指令
+        </div>
+      `;
+    });
+
+    document.addEventListener('click', (e) => {
+      if (isExpanded && !nexus.contains(e.target) && !input.value.trim()) {
+        toggleDemoOrb(false);
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isExpanded) toggleDemoOrb(false);
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = input.value.trim();
+      if (!val) return;
+      const safe = val.replace(/</g, '&lt;');
+      chatArea.innerHTML = `
+        <div class="ml-auto w-fit max-w-[85%] px-3.5 py-2 rounded-2xl rounded-tr-sm bg-white/[0.07] border border-white/[0.08] text-xs sm:text-sm text-zinc-200">
+          ${safe}
+        </div>
+        <div class="mr-auto w-fit max-w-[88%] px-3.5 py-2.5 rounded-2xl rounded-tl-sm bg-white/[0.02] border border-white/[0.06] text-xs sm:text-sm text-zinc-400 leading-relaxed">
+          已收到指令。下载桌面版并配置 API 端口后，即可直接操作本地文件。
+        </div>
+      `;
+      input.value = '';
+      toggleDemoOrb(false);
+    });
+  </script>
+</body>
+</html>
